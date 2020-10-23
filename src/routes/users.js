@@ -3,7 +3,9 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
+const { userAuth } = require('../middleware/auth')
 const User = require('../models/users')
+const { sendConfirmationMail } = require('../emails/emails')
 
 router.post('/signup', (req, res, next) => {
   User.find({ email: req.body.email })
@@ -28,7 +30,7 @@ router.post('/signup', (req, res, next) => {
         })
         createdUser.save()
           .then(result => {
-            console.log(result);
+            sendConfirmationMail(result.email)
             res.status(201).json({
               message: 'User added'
             })
@@ -38,6 +40,27 @@ router.post('/signup', (req, res, next) => {
               error: err
             })
           })
+      })
+    })
+})
+
+router.get('/confirmation', userAuth, (req, res, next) => {
+  User.findByIdAndUpdate(req.userData._id, { isConfirmed: true })
+    .exec()
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({
+          message: 'Invalid user'
+        })
+      }
+
+      res.status(200).json({
+        message: 'Account confirmed. Please login'
+      })
+    })
+    .catch(err => {
+      res.status(500).json({
+        error: err
       })
     })
 })
@@ -64,7 +87,7 @@ router.post('/login', (req, res, next) => {
             role: user.role,
             _id: user._id
           },
-            'theicecreamkey',
+            process.env.SECRET,
             {
               expiresIn: "1h"
             }
@@ -87,7 +110,7 @@ router.post('/login', (req, res, next) => {
     })
 })
 
-router.delete('/:userId', (req, res, next) => {
+router.delete('/:userId', userAuth, (req, res, next) => {
   User.findOneAndDelete({ _id: req.params.userId })
     .then(result => {
       if (!result) {
