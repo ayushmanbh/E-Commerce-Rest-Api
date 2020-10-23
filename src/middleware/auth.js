@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
+const ROLE = require('../roles')
 
-module.exports = (req, res, next) => {
+const userAuth = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
     const decoded = jwt.verify(token, 'theicecreamkey')
@@ -11,4 +12,18 @@ module.exports = (req, res, next) => {
       message: 'Login again'
     })
   }
+}
+
+const roleAuth = (req, res, next) => {
+  if (req.userData.role !== ROLE.ADMIN) {
+    return res.status(401).json({
+      message: 'Forbidden resource'
+    })
+  }
+  next()
+}
+
+module.exports = {
+  userAuth,
+  roleAuth
 }

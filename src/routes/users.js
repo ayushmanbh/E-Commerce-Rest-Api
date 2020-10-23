@@ -23,7 +23,8 @@ router.post('/signup', (req, res, next) => {
         const createdUser = new User({
           _id: new mongoose.Types.ObjectId(),
           email: req.body.email,
-          password: hash
+          password: hash,
+          role: req.body.role
         })
         createdUser.save()
           .then(result => {
@@ -60,6 +61,7 @@ router.post('/login', (req, res, next) => {
         if (result) {
           const token = jwt.sign({
             email: user.email,
+            role: user.role,
             _id: user._id
           },
             'theicecreamkey',

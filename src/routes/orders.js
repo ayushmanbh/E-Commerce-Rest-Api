@@ -3,10 +3,10 @@ const router = express.Router()
 const mongoose = require('mongoose')
 const Order = require('../models/orders')
 const Product = require('../models/products')
-const auth = require('../middleware/auth')
+const { userAuth } = require('../middleware/auth')
 
 
-router.get('/', auth, (req, res, next) => {
+router.get('/', userAuth, (req, res, next) => {
   Order.find({ user: req.userData._id })
     .populate('product', 'name price')
     .exec()
@@ -34,7 +34,7 @@ router.get('/', auth, (req, res, next) => {
 
 })
 
-router.post('/', auth, (req, res, next) => {
+router.post('/', userAuth, (req, res, next) => {
   Product.findById(req.body.productId)
     .then(product => {
       if (!product) {
@@ -66,7 +66,7 @@ router.post('/', auth, (req, res, next) => {
     })
 })
 
-router.get('/:orderId', auth, (req, res, next) => {
+router.get('/:orderId', userAuth, (req, res, next) => {
   Order.findOne({ _id: req.params.orderId, user: req.userData._id })
     .populate('product', 'name price')
     .exec()
@@ -92,7 +92,7 @@ router.get('/:orderId', auth, (req, res, next) => {
     })
 })
 
-router.delete('/:orderId', auth, (req, res, next) => {
+router.delete('/:orderId', userAuth, (req, res, next) => {
   Order.findOneAndDelete({ _id: req.params.orderId, user: req.userData._id })
     .exec()
     .then(order => {

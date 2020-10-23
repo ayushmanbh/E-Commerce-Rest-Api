@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Product = require('../models/products')
-const auth = require('../middleware/auth')
+const { userAuth, roleAuth } = require('../middleware/auth')
 const mongoose = require('mongoose')
 const multer = require('multer')
 
@@ -10,6 +10,7 @@ const storage = multer.diskStorage({
     cb(null, './uploads/')
   },
   filename: function (req, file, cb) {
+    //path acc. to windows, remove replace() on mac
     cb(null, new Date().toISOString().replace(/:|\./g, '') + '-' + file.originalname)
   }
 })
@@ -53,7 +54,7 @@ router.get('/', (req, res, next) => {
     .catch(err => res.status(500).json({ error: err }))
 })
 
-router.post('/', auth, upload.single('productImage'), (req, res, next) => {
+router.post('/', userAuth, roleAuth, upload.single('productImage'), (req, res, next) => {
   const product = new Product({
     _id: new mongoose.Types.ObjectId(),
     name: req.body.name,
@@ -99,7 +100,7 @@ router.get('/:productId', (req, res, next) => {
     })
 })
 
-router.patch('/:productId', auth, (req, res, next) => {
+router.patch('/:productId', userAuth, roleAuth, (req, res, next) => {
   const id = req.params.productId
   Product.updateOne({ _id: id }, req.body)
     .then(result => {
@@ -112,7 +113,7 @@ router.patch('/:productId', auth, (req, res, next) => {
     .catch(err => res.status(500).json({ error: err }))
 })
 
-router.delete('/:productId', auth, (req, res, next) => {
+router.delete('/:productId', userAuth, roleAuth, (req, res, next) => {
   const id = req.params.productId
   Product.deleteOne({ _id: id })
     .then(doc => res.status(200).json({ message: 'Product deleted' }))
