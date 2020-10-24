@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { userAuth } = require('../middleware/auth')
 const User = require('../models/users')
+const Order = require('../models/orders')
 const { sendConfirmationMail } = require('../emails/emails')
 
 router.post('/signup', (req, res, next) => {
@@ -110,14 +111,16 @@ router.post('/login', (req, res, next) => {
     })
 })
 
-router.delete('/:userId', userAuth, (req, res, next) => {
-  User.findOneAndDelete({ _id: req.params.userId })
-    .then(result => {
+router.delete('/', userAuth, (req, res, next) => {
+  User.findOneAndDelete({ _id: req.userData._id })
+    .then(async (result) => {
+      console.log(result);
       if (!result) {
         return res.status(404).json({
           message: 'User not found'
         })
       }
+      await Order.deleteMany({ user: req.userData._id })
       res.status(200).json({
         message: 'User got deleted'
       })

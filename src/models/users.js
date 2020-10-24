@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Order = require('./orders')
 
 const userSchema = mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
